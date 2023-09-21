@@ -13,5 +13,16 @@ The heart of the library is the ~xts~ namespace, with functions further
 demarcated according to the relevant ~scipy~ modules e.g.
 ~xts::linalg::iterative::conjugate_gradient~.
 
+** Usage
+
+Other than the regular library usage, there are also very light ~python~ bindings:
+#+begin_src bash
+meson setup bbdir -Dwith_pybind11=True
+meson compile -C bbdir
+# Temporary
+export PYTHONPATH=$PYTHONPATH:$(pwd)/bbdir/bindings/pyb11
+python scripts/basic_bench.py
+#+end_src
+
 ** License
 MIT.
