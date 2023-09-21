@@ -11,6 +11,8 @@
 #include "xtensor/xview.hpp"
 
 #include "xtensor-blas/xlinalg.hpp"
+#include "xtsci/linalg/precond/identity.hpp"
+
 namespace xts {
 namespace linalg {
 namespace iterative {
@@ -48,9 +50,10 @@ template <typename E1, typename E2, typename E3, typename Preconditioner>
 // Straight port of the Eigen implementation
 ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
     const xt::xexpression<E1> &mat_expr, const xt::xexpression<E2> &rhs_expr,
-    xt::xexpression<E3> &x_expr, const Preconditioner &precond,
-    const ConjugateGradientParams<typename E3::value_type> &params) {
-
+    xt::xexpression<E3> &x_expr,
+    const ConjugateGradientParams<typename E3::value_type> &params =
+        ConjugateGradientParams<typename E3::value_type>(),
+    const Preconditioner &precond = precond::IdentityPreconditioner()) {
   const auto &mat = mat_expr.derived_cast();
   const auto &rhs = rhs_expr.derived_cast();
   auto &x = x_expr.derived_cast();

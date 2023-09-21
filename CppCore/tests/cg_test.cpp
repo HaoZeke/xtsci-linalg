@@ -33,8 +33,8 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
   SECTION("Basic convergence test") {
     size_t maxIters = 1000;
     double tol = 1e-5;
-    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond,
-                                                          {maxIters, tol});
+    auto res = xts::linalg::iterative::conjugate_gradient(
+        A, b, x0, {maxIters, tol}, precond);
 
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
     REQUIRE(res.iterations <
@@ -46,7 +46,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     size_t maxIters = 1000;
     double tol = 1e-5;
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, zero_b, x0, precond, {maxIters, tol});
+        A, zero_b, x0, {maxIters, tol}, precond);
 
     REQUIRE(xt::all(xt::equal(res.solution, 0.0)));
     REQUIRE(res.iterations == 0);
@@ -59,7 +59,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
       return xt::sum(xt::abs(vec))();
     };
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, precond, {maxIters, tol, l1_norm});
+        A, b, x0, {maxIters, tol, l1_norm}, precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
   }
 
@@ -70,15 +70,15 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
       return xt::linalg::norm(vec, 2);
     };
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, precond, {maxIters, tol, l2_norm});
+        A, b, x0, {maxIters, tol, l2_norm}, precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
   }
 
   SECTION("High Tolerance Test") {
     size_t maxIters = 1000;
     double tol = 1.0; // An exaggeratedly high tolerance.
-    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond,
-                                                          {maxIters, tol});
+    auto res = xts::linalg::iterative::conjugate_gradient(
+        A, b, x0, {maxIters, tol}, precond);
 
     // Solver should stop early and the solution might be far from accurate.
     REQUIRE(res.iterations < maxIters);
@@ -95,7 +95,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     double tol = 0.0; // Overly stringent
 
     auto res = xts::linalg::iterative::conjugate_gradient(
-        Hilbert, b, x0, precond, {maxIters, tol});
+        Hilbert, b, x0, {maxIters, tol}, precond);
 
     // Doesn't converge exactly before maxIters due to the stringent
     // tolerance:
@@ -114,7 +114,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     size_t maxIters = 2;
     double tol = 1e-5;
     auto res = xts::linalg::iterative::conjugate_gradient(
-        ill_conditioned_A, ill_conditioned_b, x0_ill, precond, {maxIters, tol});
+        ill_conditioned_A, ill_conditioned_b, x0_ill, {maxIters, tol}, precond);
 
     // It should stop at max iterations due to non-convergence.
     REQUIRE(res.iterations == maxIters);
@@ -125,7 +125,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     double tol = 1e-5;
     xts::linalg::precond::JacobiPreconditioner jacobi_precond(A);
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, jacobi_precond, {maxIters, tol});
+        A, b, x0, {maxIters, tol}, jacobi_precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
     REQUIRE(res.iterations < 50); // Should converge in fewer than 1000
                                   // iterations with the Jacobi preconditioner
@@ -144,11 +144,11 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
 
     // Solving using Identity Preconditioner
     auto res_identity = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, identity_precond, {maxIters, tol});
+        A, b, x0, {maxIters, tol}, identity_precond);
 
     // Solving using Jacobi Preconditioner
     auto res_jacobi = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, jacobi_precond, {maxIters, tol});
+        A, b, x0, {maxIters, tol}, jacobi_precond);
 
     // Check solutions
     REQUIRE(
