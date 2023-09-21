@@ -43,6 +43,7 @@ template <typename ScalarType> struct ConjugateGradientParams {
       std::function<ScalarType(const xt::xarray<ScalarType> &)> norm_fn_val)
       : max_iter(max_iter_val), tol(tol_val), norm_fn(norm_fn_val) {}
 };
+
 template <typename E1, typename E2, typename E3, typename Preconditioner>
 // Straight port of the Eigen implementation
 ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
