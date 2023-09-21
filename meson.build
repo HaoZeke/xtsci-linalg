@@ -61,3 +61,9 @@ _incdirs += [ 'CppCore' ]
 xtsci_linalg_dep = declare_dependency(include_directories: _incdirs,
                                       link_with: _linkto,
                                       dependencies: _deps)
+
+# --------------------- Bindings
+# Python
+if get_option('with_pybind11')
+  subdir('bindings/pyb11')
+endif
