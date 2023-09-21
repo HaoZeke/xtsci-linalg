@@ -1,0 +1,4 @@
+# Booleans
+option('with_tests',
+      type: 'boolean',
+      value: false)
