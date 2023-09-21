@@ -13,9 +13,16 @@ namespace iterative {
 
 template <typename ScalarType> struct ConjugateGradientResult {
   xt::xarray<ScalarType> solution;
-  int iterations;
+  size_t iterations;
   ScalarType final_error;
 };
+
+template <typename ScalarType>
+struct ConjugateGradientParams {
+    size_t max_iter;
+    ScalarType tol;
+};
+
 
 template <typename E1, typename E2, typename E3, typename Preconditioner>
 // Straight port of the Eigen implementation
@@ -23,15 +30,15 @@ ConjugateGradientResult<typename E3::value_type>
 conjugate_gradient(const xt::xexpression<E1> &mat_expr,
                    const xt::xexpression<E2> &rhs_expr,
                    xt::xexpression<E3> &x_expr, const Preconditioner &precond,
-                   int &iterations, typename E3::value_type &final_error) {
+                   const ConjugateGradientParams<typename E3::value_type>& params) {
   const auto &mat = mat_expr.derived_cast();
   const auto &rhs = rhs_expr.derived_cast();
   auto &x = x_expr.derived_cast();
 
   using RealScalar = typename E3::value_type;
 
-  RealScalar tol = final_error;
-  int maxIters = iterations;
+  RealScalar tol = params.tol;
+  size_t iters { 0 };
 
   xt::xarray<RealScalar> residual = rhs - xt::linalg::dot(mat, x);
 
@@ -40,9 +47,9 @@ conjugate_gradient(const xt::xexpression<E1> &mat_expr,
 
   if (rhsNorm2 == 0) {
     x.fill(0);
-    iterations = 0;
-    final_error = 0;
-    return ConjugateGradientResult<typename E3::value_type>{x, iterations, final_error};
+    iters = 0;
+    tol = 0;
+    return ConjugateGradientResult<typename E3::value_type>{x, iters, tol};
   }
 
   RealScalar threshold =
@@ -52,17 +59,15 @@ conjugate_gradient(const xt::xexpression<E1> &mat_expr,
   residualNorm2 *= residualNorm2;
 
   if (residualNorm2 < threshold) {
-    iterations = 0;
-    final_error = std::sqrt(residualNorm2 / rhsNorm2);
-    return ConjugateGradientResult<typename E3::value_type>{x, iterations, final_error};
+    iters = 0;
+    tol = std::sqrt(residualNorm2 / rhsNorm2);
+    return ConjugateGradientResult<typename E3::value_type>{x, iters, tol};
   }
 
   auto searchDirection = precond.solve(residual);
 
   RealScalar dotProductNew = xt::linalg::dot(residual, searchDirection)();
-  int i = 0;
-
-  while (i < maxIters) {
+  while (iters < params.max_iter) {
     auto tmp = xt::linalg::dot(mat, searchDirection);
     RealScalar alpha = dotProductNew / xt::linalg::dot(searchDirection, tmp)();
 
@@ -81,12 +86,11 @@ conjugate_gradient(const xt::xexpression<E1> &mat_expr,
     RealScalar beta = dotProductNew / dotProductOld;
     searchDirection = z + beta * searchDirection;
 
-    i++;
+    iters++;
   }
 
-  final_error = std::sqrt(residualNorm2 / rhsNorm2);
-  iterations = i;
-  return ConjugateGradientResult<typename E3::value_type>{x, i, final_error};
+  tol = std::sqrt(residualNorm2 / rhsNorm2);
+  return ConjugateGradientResult<typename E3::value_type>{x, iters, tol};
 }
 } // namespace iterative
 } // namespace linalg

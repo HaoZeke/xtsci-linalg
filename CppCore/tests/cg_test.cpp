@@ -23,10 +23,9 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
   MockPreconditioner precond;
 
   SECTION("Basic convergence test") {
-    int maxIters = 1000;
+    size_t maxIters = 1000;
     double tol = 1e-5;
-    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond, maxIters,
-                                               tol);
+    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond,{maxIters, tol});
 
     xt::xarray<double> expected_solution = {0.090909090909091,
                                             0.636363636363636};
@@ -36,10 +35,9 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
 
   SECTION("Zero rhs test") {
     xt::xarray<double> zero_b = {0, 0};
-    int maxIters = 1000;
+    size_t maxIters = 1000;
     double tol = 1e-5;
-    auto res = xts::linalg::iterative::conjugate_gradient(A, zero_b, x0, precond, maxIters,
-                                               tol);
+    auto res = xts::linalg::iterative::conjugate_gradient(A, zero_b, x0, precond, {maxIters, tol});
 
     REQUIRE(xt::all(xt::equal(res.solution, 0.0)));
     REQUIRE(res.iterations == 0);
