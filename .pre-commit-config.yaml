@@ -18,7 +18,7 @@ repos:
       args: ["--error-exitcode=0"]
     # - id: clang-tidy
     - id: cpplint
-      args: ["--filter=-whitespace/comments,-runtime/references"]
+      args: ["--filter=-whitespace/comments,-runtime/references,-whitespace/indent"]
 -   repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:

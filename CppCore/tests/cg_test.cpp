@@ -5,6 +5,7 @@
 
 #include "include/xtensor_fmt.hpp"
 #include "xtsci/linalg/iterative/cg.hpp"
+#include "xtsci/linalg/precond/jacobi.hpp"
 
 #include <catch2/catch_all.hpp>
 
@@ -13,19 +14,6 @@ struct MockPreconditioner {
   template <typename E> auto solve(const xt::xexpression<E> &x_expr) const {
     const auto &x = x_expr.derived_cast();
     return x; // Identity preconditioning for simplicity
-  }
-};
-
-struct JacobiPreconditioner {
-  xt::xarray<double> M_inv;
-
-  explicit JacobiPreconditioner(const xt::xarray<double> &A) {
-    M_inv = 1.0 / xt::diagonal(A);
-  }
-
-  template <typename E> auto solve(const xt::xexpression<E> &x_expr) const {
-    const auto &x = x_expr.derived_cast();
-    return M_inv * x;
   }
 };
 
@@ -139,15 +127,15 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     REQUIRE(res.iterations == maxIters);
   }
 
-  SECTION("Convergence with Jacobi preconditioner") {
+  SECTION("Convergence with the Jacobi preconditioner") {
     size_t maxIters = 1000;
     double tol = 1e-5;
-    JacobiPreconditioner jacobi_precond(A);
+    xts::linalg::precond::JacobiPreconditioner jacobi_precond(A);
     auto res = xts::linalg::iterative::conjugate_gradient(
         A, b, x0, jacobi_precond, {maxIters, tol});
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
     REQUIRE(res.iterations < 50); // Should converge in fewer than 1000
-                                  // iterations with Jacobi preconditioner
+                                  // iterations with the Jacobi preconditioner
   }
 
   SECTION("Preconditioner Comparison") {
@@ -156,7 +144,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     xt::xarray<double> x0 = {2, 1}; // Initial guess
 
     MockPreconditioner mock_precond;
-    JacobiPreconditioner jacobi_precond(A);
+    xts::linalg::precond::JacobiPreconditioner jacobi_precond(A);
 
     size_t maxIters = 1000;
     double tol = 1e-5;
