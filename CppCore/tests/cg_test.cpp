@@ -25,19 +25,22 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
   SECTION("Basic convergence test") {
     size_t maxIters = 1000;
     double tol = 1e-5;
-    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond,{maxIters, tol});
+    auto res = xts::linalg::iterative::conjugate_gradient(A, b, x0, precond,
+                                                          {maxIters, tol});
 
     xt::xarray<double> expected_solution = {0.090909090909091,
                                             0.636363636363636};
     REQUIRE(xt::allclose(res.solution, expected_solution, 1e-15));
-    REQUIRE(res.iterations < 100); // Should converge in fewer than 1000 iterations
+    REQUIRE(res.iterations <
+            100); // Should converge in fewer than 1000 iterations
   }
 
   SECTION("Zero rhs test") {
     xt::xarray<double> zero_b = {0, 0};
     size_t maxIters = 1000;
     double tol = 1e-5;
-    auto res = xts::linalg::iterative::conjugate_gradient(A, zero_b, x0, precond, {maxIters, tol});
+    auto res = xts::linalg::iterative::conjugate_gradient(
+        A, zero_b, x0, precond, {maxIters, tol});
 
     REQUIRE(xt::all(xt::equal(res.solution, 0.0)));
     REQUIRE(res.iterations == 0);
