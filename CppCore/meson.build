@@ -18,7 +18,7 @@ if get_option('with_tests')
     )
     test_args = _args
     test_array = [#
-      # ['cg_test', 'cg_test.cpp', '/CppCore/tests/data/cg'],
+      ['cg_test', 'cg_test.cpp', ''],
     ]
     foreach test : test_array
       test(test.get(0),
