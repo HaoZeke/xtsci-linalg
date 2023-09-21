@@ -11,7 +11,7 @@ prototyping thing.
 ** Components
 The heart of the library is the ~xts~ namespace, with functions further
 demarcated according to the relevant ~scipy~ modules e.g.
-~xts::linalg::cg~.
+~xts::linalg::iterative::conjugate_gradient~.
 
 ** License
 MIT.
