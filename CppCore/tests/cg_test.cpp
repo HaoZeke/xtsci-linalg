@@ -16,6 +16,19 @@ struct MockPreconditioner {
   }
 };
 
+struct JacobiPreconditioner {
+  xt::xarray<double> M_inv;
+
+  explicit JacobiPreconditioner(const xt::xarray<double> &A) {
+    M_inv = 1.0 / xt::diagonal(A);
+  }
+
+  template <typename E> auto solve(const xt::xexpression<E> &x_expr) const {
+    const auto &x = x_expr.derived_cast();
+    return M_inv * x;
+  }
+};
+
 // To get an ill-conditioned matrix
 xt::xarray<double> create_hilbert_matrix(std::size_t n) {
   xt::xarray<double> H = xt::empty<double>({n, n});
@@ -32,8 +45,9 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
   xt::xarray<double> b = {1, 2};
   xt::xarray<double> x0 = {2, 1}; // Initial guess
   MockPreconditioner precond;
-  const xt::xarray<double> default_expected_solution{0.090909090909091,
-                                                     0.636363636363636};
+  const xt::xarray<double> default_expected_solution{
+      0.09090909090909093936971885341336019,
+      0.63636363636363624252112458634655923};
 
   SECTION("Basic convergence test") {
     size_t maxIters = 1000;
@@ -123,5 +137,45 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
 
     // It should stop at max iterations due to non-convergence.
     REQUIRE(res.iterations == maxIters);
+  }
+
+  SECTION("Convergence with Jacobi preconditioner") {
+    size_t maxIters = 1000;
+    double tol = 1e-5;
+    JacobiPreconditioner jacobi_precond(A);
+    auto res = xts::linalg::iterative::conjugate_gradient(
+        A, b, x0, jacobi_precond, {maxIters, tol});
+    REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
+    REQUIRE(res.iterations < 50); // Should converge in fewer than 1000
+                                  // iterations with Jacobi preconditioner
+  }
+
+  SECTION("Preconditioner Comparison") {
+    xt::xarray<double> A = {{4, 1}, {1, 3}};
+    xt::xarray<double> b = {1, 2};
+    xt::xarray<double> x0 = {2, 1}; // Initial guess
+
+    MockPreconditioner mock_precond;
+    JacobiPreconditioner jacobi_precond(A);
+
+    size_t maxIters = 1000;
+    double tol = 1e-5;
+
+    // Solving using Mock Preconditioner
+    auto res_mock = xts::linalg::iterative::conjugate_gradient(
+        A, b, x0, mock_precond, {maxIters, tol});
+
+    // Solving using Jacobi Preconditioner
+    auto res_jacobi = xts::linalg::iterative::conjugate_gradient(
+        A, b, x0, jacobi_precond, {maxIters, tol});
+
+    // Check solutions
+    REQUIRE(xt::allclose(res_mock.solution, default_expected_solution, 1e-15));
+    REQUIRE(
+        xt::allclose(res_jacobi.solution, default_expected_solution, 1e-15));
+
+    // Verify that the Jacobi preconditioner converged faster than the Mock
+    // preconditioner
+    REQUIRE(res_jacobi.iterations < res_mock.iterations);
   }
 }
