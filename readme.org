@@ -21,8 +21,15 @@ meson setup bbdir -Dwith_pybind11=True
 meson compile -C bbdir
 # Temporary
 export PYTHONPATH=$PYTHONPATH:$(pwd)/bbdir/bindings/pyb11
-python scripts/basic_bench.py
+python scripts/basic_cg_bench.py
+Benchmarking xtsl's Conjugate Gradient:
+Average time per iteration: 0.000038 seconds
+
+Benchmarking scipy's Conjugate Gradient:
+Average time per iteration: 0.000058 seconds
 #+end_src
+
+Note that these results don't currently scale to large matrices.
 
 ** License
 MIT.
