@@ -24,8 +24,25 @@ template <typename ScalarType> struct ConjugateGradientResult {
 template <typename ScalarType> struct ConjugateGradientParams {
   size_t max_iter;
   ScalarType tol;
-};
+  std::function<ScalarType(const xt::xarray<ScalarType> &)> norm_fn;
 
+  // Default constructor
+  ConjugateGradientParams()
+      : ConjugateGradientParams(1000, static_cast<ScalarType>(1e-6)) {}
+
+  // Constructor for max_iter and tol
+  ConjugateGradientParams(size_t max_iter_val, ScalarType tol_val)
+      : ConjugateGradientParams(
+            max_iter_val, tol_val, [](const xt::xarray<ScalarType> &vec) {
+              return xt::sum(vec * vec)(); // Defaults to (L2 norm)**2
+            }) {}
+
+  // Fully specified constructor
+  ConjugateGradientParams(
+      size_t max_iter_val, ScalarType tol_val,
+      std::function<ScalarType(const xt::xarray<ScalarType> &)> norm_fn_val)
+      : max_iter(max_iter_val), tol(tol_val), norm_fn(norm_fn_val) {}
+};
 template <typename E1, typename E2, typename E3, typename Preconditioner>
 // Straight port of the Eigen implementation
 ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
@@ -44,9 +61,9 @@ ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
 
   auto residual_expr = rhs - xt::linalg::dot(mat, x);
   xt::xarray<RealScalar> residual = residual_expr; // Forced evaluation here
-  auto norm_sq = [](const auto &vec) { return xt::sum(vec * vec)(); };
+  auto norm_fn = params.norm_fn;
 
-  auto rhsNorm2 = norm_sq(rhs);
+  auto rhsNorm2 = norm_fn(rhs);
   if (rhsNorm2 == 0) {
     x.fill(0);
     iters = 0;
@@ -56,7 +73,7 @@ ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
 
   auto threshold =
       std::max(tol * tol * rhsNorm2, std::numeric_limits<RealScalar>::min());
-  auto residualNorm2 = norm_sq(residual);
+  auto residualNorm2 = norm_fn(residual);
 
   if (residualNorm2 < threshold) {
     iters = 0;
@@ -75,7 +92,7 @@ ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
     xt::noalias(x) += alpha * searchDirection;
     xt::noalias(residual) -= alpha * tmp_expr;
 
-    residualNorm2 = norm_sq(residual);
+    residualNorm2 = norm_fn(residual);
     if (residualNorm2 < threshold)
       break;
 
