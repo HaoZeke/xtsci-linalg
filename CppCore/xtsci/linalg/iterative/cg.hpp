@@ -82,8 +82,8 @@ ConjugateGradientResult<typename E3::value_type> conjugate_gradient(
     return ConjugateGradientResult<typename E3::value_type>{x, iters, tol};
   }
 
-  auto searchDirection = precond.solve(residual);
-  auto dotProductNew = xt::linalg::dot(residual, searchDirection)();
+  auto searchDirection = xt::eval(precond.solve(residual));
+  auto dotProductNew = xt::linalg::dot(residual, searchDirection);
 
   while (iters < params.max_iter) {
     auto tmp_expr = xt::linalg::dot(mat, searchDirection);
