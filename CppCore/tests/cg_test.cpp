@@ -59,7 +59,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
       return xt::sum(xt::abs(vec))();
     };
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol, l1_norm}, precond);
+        A, b, x0, {maxIters, tol, false, l1_norm}, precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
   }
 
@@ -70,7 +70,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
       return xt::linalg::norm(vec, 2);
     };
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol, l2_norm}, precond);
+        A, b, x0, {maxIters, tol, false, l2_norm}, precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
   }
 
@@ -78,7 +78,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     size_t maxIters = 1000;
     double tol = 1.0; // An exaggeratedly high tolerance.
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol}, precond);
+        A, b, x0, {maxIters, tol, false}, precond);
 
     // Solver should stop early and the solution might be far from accurate.
     REQUIRE(res.iterations < maxIters);
@@ -95,7 +95,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     double tol = 0.0; // Overly stringent
 
     auto res = xts::linalg::iterative::conjugate_gradient(
-        Hilbert, b, x0, {maxIters, tol}, precond);
+        Hilbert, b, x0, {maxIters, tol, false}, precond);
 
     // Doesn't converge exactly before maxIters due to the stringent
     // tolerance:
@@ -114,7 +114,8 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     size_t maxIters = 2;
     double tol = 1e-5;
     auto res = xts::linalg::iterative::conjugate_gradient(
-        ill_conditioned_A, ill_conditioned_b, x0_ill, {maxIters, tol}, precond);
+        ill_conditioned_A, ill_conditioned_b, x0_ill, {maxIters, tol, false},
+        precond);
 
     // It should stop at max iterations due to non-convergence.
     REQUIRE(res.iterations == maxIters);
@@ -125,7 +126,7 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
     double tol = 1e-5;
     xts::linalg::precond::JacobiPreconditioner jacobi_precond(A);
     auto res = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol}, jacobi_precond);
+        A, b, x0, {maxIters, tol, false}, jacobi_precond);
     REQUIRE(xt::allclose(res.solution, default_expected_solution, 1e-15));
     REQUIRE(res.iterations < 50); // Should converge in fewer than 1000
                                   // iterations with the Jacobi preconditioner
@@ -144,11 +145,11 @@ TEST_CASE("Conjugate Gradient Tests", "[conjugate_gradient]") {
 
     // Solving using Identity Preconditioner
     auto res_identity = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol}, identity_precond);
+        A, b, x0, {maxIters, tol, false}, identity_precond);
 
     // Solving using Jacobi Preconditioner
     auto res_jacobi = xts::linalg::iterative::conjugate_gradient(
-        A, b, x0, {maxIters, tol}, jacobi_precond);
+        A, b, x0, {maxIters, tol, false}, jacobi_precond);
 
     // Check solutions
     REQUIRE(
