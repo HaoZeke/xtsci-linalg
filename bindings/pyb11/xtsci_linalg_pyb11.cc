@@ -89,7 +89,7 @@ PYBIND11_MODULE(_xts_linalg, m) {
   //     .def_readonly("final_error", &IterativeRes::final_error);
   iterative.def(
       "conjugate_gradient",
-      [](const xt::xarray<RealScalar> &mat, const xt::xarray<RealScalar> &rhs,
+      [](const xt::pyarray<RealScalar> &mat, const xt::pyarray<RealScalar> &rhs,
          xt::xarray<RealScalar> &x, const CGParams &params) {
         xts::linalg::precond::IdentityPreconditioner precond;
         IterativeRes result = xts::linalg::iterative::conjugate_gradient(
