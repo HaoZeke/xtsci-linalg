@@ -17,19 +17,17 @@ demarcated according to the relevant ~scipy~ modules e.g.
 
 Other than the regular library usage, there are also very light ~python~ bindings:
 #+begin_src bash
-meson setup bbdir -Dwith_pybind11=True
+meson setup bbdir -Dwith_pybind11=True --buildtype="release"
 meson compile -C bbdir
 # Temporary
 export PYTHONPATH=$PYTHONPATH:$(pwd)/bbdir/bindings/pyb11
 python scripts/basic_cg_bench.py
 Benchmarking xtsl's Conjugate Gradient:
-Average time per iteration: 0.000038 seconds
+Average time per iteration: 0.000003 seconds
 
 Benchmarking scipy's Conjugate Gradient:
-Average time per iteration: 0.000058 seconds
+Average time per iteration: 0.000057 seconds
 #+end_src
-
-Note that these results don't currently scale to large matrices.
 
 ** License
 MIT.
