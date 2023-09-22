@@ -8,10 +8,18 @@ from scipy.sparse.linalg import cg
 A = np.array([[4, 1], [1, 3]])
 b = np.array([1, 2])
 x0 = np.array([2, 1])  # Initial guess
+
+# size = 100
+# temp = np.random.rand(size, size)
+# A = (temp + temp.T) / 2
+# b = np.random.rand(size)
+# x0 = np.random.rand(size)
+
 maxIters = 1000
 tol = 1e-5
 cginp = xtsl.linalg.iterative.ConjugateGradientParams()
 cginp.max_iter = maxIters
+cginp.tol = tol
 
 
 # Function for xtsl's Conjugate Gradient
